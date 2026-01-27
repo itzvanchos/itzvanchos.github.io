@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vanchos</title>
+    <link rel="icon" type="image/x-icon" href="static/vanchos.png">
+    <style>
+        :root {
+            --transition: all 0.3s ease;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #ffffff;
+            color: #1f1f1f;
+            transition: var(--transition);
+            overflow-x: hidden;
+        }
+        
+        body.dark-theme {
+            background-color: #3c3c3c;
+            color: #ffffff;
+        }
+        
+        .navbar {
+            background-color: #ffffff;
+            border-bottom: 1px solid #dadce0;
+            padding: 0 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            transition: var(--transition);
+            height: 63px;
+        }
+        
+        .dark-theme .navbar {
+            background-color: #3c3c3c;
+            border-bottom: 1px solid #444746;
+        }
+        
+        .navbar-left {
+            display: flex;
+            align-items: center;
+        }
+        
+        .navbar-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .navbar-logo {
+            height: 32px;
+            width: 32px;
+        }
+        
+        .theme-toggle, .lang-toggle {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            border-radius: 4px;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+        }
+        
+        .theme-toggle:hover, .lang-toggle:hover {
+            background-color: rgba(0,0,0,0.1);
+        }
+        
+        .dark-theme .theme-toggle:hover, .dark-theme .lang-toggle:hover {
+            background-color: rgba(255,255,255,0.1);
+        }
+        
+        .theme-icon {
+            width: 16px;
+            height: 16px;
+        }
+        
+        .lang-toggle {
+            font-size: 14px;
+            font-weight: bold;
+            color: #1f1f1f;
+            width: 32px;
+            height: 32px;
+        }
+        
+        .dark-theme .lang-toggle {
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-left">
+            <img src="static/vanchos.png" alt="Logo" class="navbar-logo" id="navbar-logo">
+        </div>
+        <div class="navbar-right">
+            <button class="lang-toggle" id="langToggle">РУ</button>
+            <button class="theme-toggle" id="themeToggle">
+                <img src="static/theme.png" alt="Dark theme" class="theme-icon" id="theme-icon">
+            </button>
+        </div>
+    </nav>
+
+    <script>
+        const themeToggle = document.getElementById('themeToggle');
+        const themeIcon = document.getElementById('theme-icon');
+        const body = document.body;
+        const navbarLogo = document.getElementById('navbar-logo');
+        const langToggle = document.getElementById('langToggle');
+
+        const THEME_KEY = 'vanchos_theme';
+        const LANGUAGE_KEY = 'vanchos_language';
+
+        const preloadedImages = {
+            light: {
+                themeIcon: "static/theme.png",
+                logo: "static/vanchos.png"
+            },
+            dark: {
+                themeIcon: "static/dark-theme.png",
+                logo: "static/dark-vanchos.png"
+            }
+        };
+
+        function saveToStorage(key, value) {
+            try {
+                localStorage.setItem(key, value);
+            } catch (e) {
+                console.log('LocalStorage is not available');
+            }
+        }
+
+        function loadFromStorage(key, defaultValue) {
+            try {
+                return localStorage.getItem(key) || defaultValue;
+            } catch (e) {
+                console.log('LocalStorage is not available');
+                return defaultValue;
+            }
+        }
+
+        function applyTheme(isDark) {
+            body.classList.toggle('dark-theme', isDark);
+            const theme = isDark ? 'dark' : 'light';
+            const images = preloadedImages[theme];
+            themeIcon.src = images.themeIcon;
+            themeIcon.alt = isDark ? "Light theme" : "Dark theme";
+            navbarLogo.src = images.logo;
+        }
+
+        function preloadOppositeThemeImages(isDark) {
+            const imagesToPreload = isDark ? preloadedImages.light : preloadedImages.dark;
+            
+            const imageSources = Object.values(imagesToPreload);
+            for (const imageSrc of imageSources) {
+                const link = document.createElement('link');
+                link.rel = 'preload';
+                link.href = imageSrc;
+                link.as = 'image';
+                document.head.appendChild(link);
+            }
+        }
+
+        function loadSavedSettings() {
+            const savedTheme = loadFromStorage(THEME_KEY, 'light');
+            const isDarkTheme = savedTheme === 'dark';
+            const savedLanguage = loadFromStorage(LANGUAGE_KEY, 'en');
+            const isEnglish = savedLanguage === 'en';
+            
+            applyTheme(isDarkTheme);
+            preloadOppositeThemeImages(isDarkTheme);
+            
+            langToggle.textContent = isEnglish ? "РУ" : "EN";
+            
+            return { isDarkTheme, isEnglish };
+        }
+
+        let { isDarkTheme, isEnglish } = loadSavedSettings();
+
+        themeToggle.addEventListener('click', function() {
+            isDarkTheme = !isDarkTheme;
+            applyTheme(isDarkTheme);
+            saveToStorage(THEME_KEY, isDarkTheme ? 'dark' : 'light');
+        });
+
+        langToggle.addEventListener('click', function() {
+            isEnglish = !isEnglish;
+            langToggle.textContent = isEnglish ? "РУ" : "EN";
+            saveToStorage(LANGUAGE_KEY, isEnglish ? 'en' : 'ru');
+        });
+    </script>
+</body>
+</html>
