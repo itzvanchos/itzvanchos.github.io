@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vanchos</title>
-    <link rel="icon" type="image/x-icon" href="static/vanchos.png">
+    <link rel="icon" type="image/x-icon" href="static/vanchos.png" id="favicon">
     <style>
         :root {
             --transition: all 0.3s ease;
@@ -121,6 +121,7 @@
         const body = document.body;
         const navbarLogo = document.getElementById('navbar-logo');
         const langToggle = document.getElementById('langToggle');
+        const favicon = document.getElementById('favicon');
 
         const THEME_KEY = 'vanchos_theme';
         const LANGUAGE_KEY = 'vanchos_language';
@@ -128,13 +129,37 @@
         const preloadedImages = {
             light: {
                 themeIcon: "static/theme.png",
-                logo: "static/vanchos.png"
+                logo: "static/vanchos.png",
+                favicon: "static/vanchos.png"
             },
             dark: {
                 themeIcon: "static/dark-theme.png",
-                logo: "static/dark-vanchos.png"
+                logo: "static/dark-vanchos.png",
+                favicon: "static/dark-vanchos.png"
             }
         };
+
+        function detectSystemTheme() {
+            try {
+                if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    return 'dark';
+                }
+                return 'light';
+            } catch (e) {
+                console.log('Error detecting system theme:', e);
+                return 'light';
+            }
+        }
+
+        function detectSystemLanguage() {
+            try {
+                const browserLang = navigator.language || navigator.userLanguage || '';
+                return browserLang.startsWith('ru') ? 'ru' : 'en';
+            } catch (e) {
+                console.log('Error detecting system language:', e);
+                return 'en';
+            }
+        }
 
         function saveToStorage(key, value) {
             try {
@@ -160,31 +185,51 @@
             themeIcon.src = images.themeIcon;
             themeIcon.alt = isDark ? "Light theme" : "Dark theme";
             navbarLogo.src = images.logo;
+            favicon.href = images.favicon;
+        }
+
+        function applyLanguage(isEnglish) {
+            langToggle.textContent = isEnglish ? "РУ" : "EN";
         }
 
         function preloadOppositeThemeImages(isDark) {
             const imagesToPreload = isDark ? preloadedImages.light : preloadedImages.dark;
             
-            const imageSources = Object.values(imagesToPreload);
-            for (const imageSrc of imageSources) {
+            const head = document.head;
+            const values = Object.values(imagesToPreload);
+            for (let i = 0; i < values.length; i++) {
                 const link = document.createElement('link');
                 link.rel = 'preload';
-                link.href = imageSrc;
+                link.href = values[i];
                 link.as = 'image';
-                document.head.appendChild(link);
+                head.appendChild(link);
             }
         }
 
         function loadSavedSettings() {
-            const savedTheme = loadFromStorage(THEME_KEY, 'light');
-            const isDarkTheme = savedTheme === 'dark';
-            const savedLanguage = loadFromStorage(LANGUAGE_KEY, 'en');
-            const isEnglish = savedLanguage === 'en';
+            const savedTheme = loadFromStorage(THEME_KEY, null);
+            const savedLanguage = loadFromStorage(LANGUAGE_KEY, null);
+            
+            let isDarkTheme;
+            let isEnglish;
+            
+            if (savedTheme !== null) {
+                isDarkTheme = savedTheme === 'dark';
+            } else {
+                const systemTheme = detectSystemTheme();
+                isDarkTheme = systemTheme === 'dark';
+            }
+            
+            if (savedLanguage !== null) {
+                isEnglish = savedLanguage === 'en';
+            } else {
+                const systemLang = detectSystemLanguage();
+                isEnglish = systemLang === 'en';
+            }
             
             applyTheme(isDarkTheme);
+            applyLanguage(isEnglish);
             preloadOppositeThemeImages(isDarkTheme);
-            
-            langToggle.textContent = isEnglish ? "РУ" : "EN";
             
             return { isDarkTheme, isEnglish };
         }
@@ -199,8 +244,16 @@
 
         langToggle.addEventListener('click', function() {
             isEnglish = !isEnglish;
-            langToggle.textContent = isEnglish ? "РУ" : "EN";
+            applyLanguage(isEnglish);
             saveToStorage(LANGUAGE_KEY, isEnglish ? 'en' : 'ru');
+        });
+        
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+            const savedTheme = loadFromStorage(THEME_KEY, null);
+            if (savedTheme === null) {
+                isDarkTheme = e.matches;
+                applyTheme(isDarkTheme);
+            }
         });
     </script>
 </body>
