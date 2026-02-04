@@ -6,16 +6,13 @@
     <title>Vanchos</title>
     <link rel="icon" type="image/x-icon" href="static/vanchos.png" id="favicon">
     <style>
-        :root {
-            --transition: all 0.3s ease;
-        }
-
         body {
-            margin: 0; padding: 0;
+            margin: 0;
+            padding: 0;
             font-family: Arial, sans-serif;
             background-color: #ffffff;
             color: #1f1f1f;
-            transition: var(--transition);
+            transition: all 0.3s ease;
             overflow-x: hidden;
         }
 
@@ -32,9 +29,11 @@
             align-items: center;
             justify-content: space-between;
             position: fixed;
-            top: 0; left: 0; right: 0;
+            top: 0;
+            left: 0;
+            right: 0;
             z-index: 1000;
-            transition: var(--transition);
+            transition: all 0.3s ease;
             height: 63px;
         }
 
@@ -43,7 +42,8 @@
             border-bottom: 1px solid #444746;
         }
         
-        .navbar-left, .navbar-right {
+        .navbar-left,
+        .navbar-right {
             display: flex;
             align-items: center;
         }
@@ -55,40 +55,50 @@
         .navbar-logo {
             height: 32px;
             width: 32px;
+            transition: all 0.3s ease;
         }
 
-        .theme-toggle, .lang-toggle {
+        .theme-toggle,
+        .lang-toggle {
             background: none;
             border: none;
             cursor: pointer;
             padding: 0;
             border-radius: 4px;
-            transition: var(--transition);
+            transition: all 0.3s ease;
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 32px; height: 32px;
+            width: 32px;
+            height: 32px;
         }
 
-        .theme-toggle:hover, .lang-toggle:hover {
-            background-color: rgba(0,0,0,0.1);
+        .theme-toggle:hover,
+        .lang-toggle:hover {
+            background-color: rgba(0, 0, 0, 0.1);
         }
-        
-        .dark-theme .theme-toggle:hover, .dark-theme .lang-toggle:hover {
-            background-color: rgba(255,255,255,0.1);
+
+        .dark-theme .theme-toggle:hover,
+        .dark-theme .lang-toggle:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .theme-toggle:active,
+        .lang-toggle:active {
+            transform: scale(0.9);
         }
 
         .theme-icon {
-            width: 16px; height: 16px;
+            width: 16px;
+            height: 16px;
         }
 
         .lang-toggle {
             font-size: 14px;
             font-weight: bold;
             color: #1f1f1f;
-            width: 32px; height: 32px;
         }
-        
+
         .dark-theme .lang-toggle {
             color: #ffffff;
         }
@@ -97,21 +107,18 @@
 <body>
     <nav class="navbar">
         <div class="navbar-left">
-            <img src="static/vanchos.png" alt="Logo" class="navbar-logo" id="navbar-logo">
+            <img src="static/vanchos.png" alt="Logo" class="navbar-logo" id="navbarLogo">
         </div>
         <div class="navbar-right">
             <button class="lang-toggle" id="langToggle">РУ</button>
             <button class="theme-toggle" id="themeToggle">
-                <img src="static/theme.png" alt="Dark theme" class="theme-icon" id="theme-icon">
+                <img src="static/theme.png" alt="Dark theme" class="theme-icon" id="themeIcon">
             </button>
         </div>
     </nav>
 
     <script>
-        const THEME_KEY = 'vanchos_theme';
-        const LANGUAGE_KEY = 'vanchos_language';
-        
-        const preloadedImages = {
+        const themeAssets = {
             light: {
                 themeIcon: "static/theme.png",
                 logo: "static/vanchos.png",
@@ -124,103 +131,98 @@
             }
         };
 
-        const body = document.body;
-        const navbarLogo = document.getElementById('navbar-logo');
-        const themeIcon = document.getElementById('theme-icon');
+        const navbarLogo = document.getElementById('navbarLogo');
+        const themeIcon = document.getElementById('themeIcon');
         const favicon = document.getElementById('favicon');
         const themeToggle = document.getElementById('themeToggle');
         const langToggle = document.getElementById('langToggle');
 
-        function detectSystemLanguage() {
-            const lang = navigator.language;
-            return lang && lang.startsWith('ru') ? 'ru' : 'en';
-        }
+        let isLight;
+        let isEnglish;
 
-        function applyLanguage(isEnglish) {
-            langToggle.textContent = isEnglish ? "РУ" : "EN";
-        }
-
-        function detectSystemTheme() {
+        function getSavedTheme() {
             try {
-                return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                return localStorage.getItem('vanchos_theme');
             } catch {
-                return 'light';
+                return null;
             }
         }
 
-        function applyTheme(isDark) {
-            body.classList.toggle('dark-theme', isDark);
-            const images = preloadedImages[isDark ? 'dark' : 'light'];
-            themeIcon.src = images.themeIcon;
-            themeIcon.alt = isDark ? "Light theme" : "Dark theme";
-            navbarLogo.src = images.logo;
-            favicon.href = images.favicon;
-        }
-
-        function preloadOppositeThemeImages(isDark) {
-            if (!isDark) {
-                new Image().src = preloadedImages.dark.logo;
-                new Image().src = preloadedImages.dark.themeIcon;
-            }
-        }
-
-        function saveToStorage(key, value) {
+        function getSavedLanguage() {
             try {
-                localStorage.setItem(key, value);
+                return localStorage.getItem('vanchos_language');
             } catch {
-                console.log('LocalStorage is not available');
+                return null;
             }
         }
 
-        function loadFromStorage(key, defaultValue) {
+        function getSystemTheme() {
+            return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+
+        function getSystemLanguage() {
+            return navigator.language.startsWith('ru') ? 'ru' : 'en';
+        }
+
+        function applyTheme(light) {
+            isLight = light;
+            document.body.classList.toggle('dark-theme', !light);
+            const assets = light ? themeAssets.light : themeAssets.dark;
+            themeIcon.src = assets.themeIcon;
+            themeIcon.alt = light ? "Dark theme" : "Light theme";
+            navbarLogo.src = assets.logo;
+            favicon.href = assets.favicon;
+        }
+
+        function applyLanguage(english) {
+            isEnglish = english;
+            langToggle.textContent = english ? "РУ" : "EN";
+        }
+
+        function preloadOppositeThemeImages(light) {
+            if (light) {
+                const darkLogo = new Image();
+                darkLogo.src = themeAssets.dark.logo;
+                const darkThemeIcon = new Image();
+                darkThemeIcon.src = themeAssets.dark.themeIcon;
+            }
+        }
+
+        function loadSettings() {
+            const savedTheme = getSavedTheme();
+            const savedLanguage = getSavedLanguage();
+
+            const theme = savedTheme ? savedTheme === 'light' : getSystemTheme() === 'light';
+            const language = savedLanguage ? savedLanguage === 'en' : getSystemLanguage() === 'en';
+
+            applyTheme(theme);
+            applyLanguage(language);
+            preloadOppositeThemeImages(theme);
+        }
+
+        function saveTheme(light) {
             try {
-                return localStorage.getItem(key) || defaultValue;
-            } catch {
-                return defaultValue;
-            }
+                localStorage.setItem('vanchos_theme', light ? 'light' : 'dark');
+            } catch {}
         }
 
-        function loadSavedSettings() {
-            const savedTheme = loadFromStorage(THEME_KEY, null);
-            const isDarkTheme = savedTheme !== null 
-                ? savedTheme === 'dark' 
-                : detectSystemTheme() === 'dark';
-            
-            applyTheme(isDarkTheme);
-            preloadOppositeThemeImages(isDarkTheme);
-            
-            const savedLanguage = loadFromStorage(LANGUAGE_KEY, null);
-            const isEnglish = savedLanguage !== null
-                ? savedLanguage === 'en'
-                : detectSystemLanguage() === 'en';
-            
-            applyLanguage(isEnglish);
-            
-            return { isDarkTheme, isEnglish };
+        function saveLanguage(english) {
+            try {
+                localStorage.setItem('vanchos_language', english ? 'en' : 'ru');
+            } catch {}
         }
 
-        let { isDarkTheme, isEnglish } = loadSavedSettings();
+        loadSettings();
 
         themeToggle.addEventListener('click', () => {
-            isDarkTheme = !isDarkTheme;
-            applyTheme(isDarkTheme);
-            preloadOppositeThemeImages(isDarkTheme);
-            saveToStorage(THEME_KEY, isDarkTheme ? 'dark' : 'light');
+            applyTheme(!isLight);
+            preloadOppositeThemeImages(!isLight);
+            saveTheme(!isLight);
         });
 
         langToggle.addEventListener('click', () => {
-            isEnglish = !isEnglish;
-            applyLanguage(isEnglish);
-            saveToStorage(LANGUAGE_KEY, isEnglish ? 'en' : 'ru');
-        });
-        
-        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-        mediaQuery.addEventListener('change', (e) => {
-            if (loadFromStorage(THEME_KEY, null) === null) {
-                isDarkTheme = e.matches;
-                applyTheme(isDarkTheme);
-                preloadOppositeThemeImages(isDarkTheme);
-            }
+            applyLanguage(!isEnglish);
+            saveLanguage(!isEnglish);
         });
     </script>
 </body>
