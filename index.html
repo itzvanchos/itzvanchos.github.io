@@ -179,25 +179,15 @@
             langToggle.textContent = english ? "РУ" : "EN";
         }
 
-        function preloadOppositeThemeImages(light) {
-            if (light) {
-                const darkLogo = new Image();
-                darkLogo.src = themeAssets.dark.logo;
-                const darkThemeIcon = new Image();
-                darkThemeIcon.src = themeAssets.dark.themeIcon;
-            }
-        }
-
         function loadSettings() {
             const savedTheme = getSavedTheme();
             const savedLanguage = getSavedLanguage();
 
-            const theme = savedTheme ? savedTheme === 'light' : getSystemTheme() === 'light';
-            const language = savedLanguage ? savedLanguage === 'en' : getSystemLanguage() === 'en';
+            const theme = savedTheme !== null ? (savedTheme === 'light') : (getSystemTheme() === 'light');
+            const language = savedLanguage !== null ? (savedLanguage === 'en') : (getSystemLanguage() === 'en');
 
             applyTheme(theme);
             applyLanguage(language);
-            preloadOppositeThemeImages(theme);
         }
 
         function saveTheme(light) {
@@ -215,14 +205,15 @@
         loadSettings();
 
         themeToggle.addEventListener('click', () => {
-            applyTheme(!isLight);
-            preloadOppositeThemeImages(!isLight);
-            saveTheme(!isLight);
+            isLight = !isLight;
+            applyTheme(isLight);
+            saveTheme(isLight);
         });
 
         langToggle.addEventListener('click', () => {
-            applyLanguage(!isEnglish);
-            saveLanguage(!isEnglish);
+            isEnglish = !isEnglish;
+            applyLanguage(isEnglish);
+            saveLanguage(isEnglish);
         });
     </script>
 </body>
