@@ -137,12 +137,12 @@
         const themeToggle = document.getElementById('themeToggle');
         const langToggle = document.getElementById('langToggle');
 
-        let isLight;
-        let isEnglish;
+        let generalTheme;
+        let generalLanguage;
 
         function getSavedTheme() {
             try {
-                return localStorage.getItem('vanchos_theme');
+                return localStorage.getItem('theme');
             } catch {
                 return null;
             }
@@ -150,70 +150,78 @@
 
         function getSavedLanguage() {
             try {
-                return localStorage.getItem('vanchos_language');
+                return localStorage.getItem('language');
             } catch {
                 return null;
             }
         }
 
         function getSystemTheme() {
-            return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            try {
+                return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            } catch {
+                return null
+            }
         }
 
         function getSystemLanguage() {
-            return navigator.language.startsWith('ru') ? 'ru' : 'en';
+            try {
+                return navigator.language.startsWith('ru') ? 'ru' : 'en';
+            } catch {
+                return null
+            }
         }
 
-        function applyTheme(light) {
-            isLight = light;
-            document.body.classList.toggle('dark-theme', !light);
-            const assets = light ? themeAssets.light : themeAssets.dark;
+        function applyTheme(theme) {
+            generalTheme = theme;
+            document.body.classList.toggle('dark-theme', theme === 'light' ? false : true);
+            const assets = theme === 'dark' ? themeAssets.dark : themeAssets.light;
             themeIcon.src = assets.themeIcon;
-            themeIcon.alt = light ? "Dark theme" : "Light theme";
+            themeIcon.alt = theme === 'dark' ? "Light theme" : "Dark theme";
             navbarLogo.src = assets.logo;
             favicon.href = assets.favicon;
         }
 
-        function applyLanguage(english) {
-            isEnglish = english;
-            langToggle.textContent = english ? "РУ" : "EN";
+        function applyLanguage(language) {
+            generalLanguage = language;
+            langToggle.textContent = language === 'ru' ? "EN" : "РУ";
         }
 
         function loadSettings() {
             const savedTheme = getSavedTheme();
             const savedLanguage = getSavedLanguage();
 
-            const theme = savedTheme !== null ? (savedTheme === 'light') : (getSystemTheme() === 'light');
-            const language = savedLanguage !== null ? (savedLanguage === 'en') : (getSystemLanguage() === 'en');
+            const theme = savedTheme === null ? (getSystemTheme() === 'dark' ? 'dark' : 'light') : (savedTheme === 'dark' ? 'dark' : 'light');
+            const language = savedLanguage === null ? (getSystemLanguage() === 'ru' ? 'ru' : 'en') : (savedLanguage === 'ru' ? 'ru' : 'en');
 
             applyTheme(theme);
             applyLanguage(language);
         }
 
-        function saveTheme(light) {
+        function saveTheme(theme) {
             try {
-                localStorage.setItem('vanchos_theme', light ? 'light' : 'dark');
+                localStorage.setItem('theme', theme);
             } catch {}
         }
 
-        function saveLanguage(english) {
+        function saveLanguage(language) {
             try {
-                localStorage.setItem('vanchos_language', english ? 'en' : 'ru');
+                localStorage.setItem('language', language);
             } catch {}
         }
 
         loadSettings();
 
         themeToggle.addEventListener('click', () => {
-            isLight = !isLight;
-            applyTheme(isLight);
-            saveTheme(isLight);
+            generalTheme = generalTheme === 'light' ? 'dark' : 'light';
+            applyTheme(generalTheme);
+            saveTheme(generalTheme);
         });
 
         langToggle.addEventListener('click', () => {
-            isEnglish = !isEnglish;
-            applyLanguage(isEnglish);
-            saveLanguage(isEnglish);
+            generalLanguage = generalLanguage === 'en' ? 'ru' : 'en';
+            applyLanguage(generalLanguage);
+            saveLanguage(generalLanguage);
         });
     </script>
 </body>
