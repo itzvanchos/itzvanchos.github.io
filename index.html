@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vanchos</title>
+    <link rel="icon" type="image/x-icon" href="static/vanchos.png" id="favicon">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #ffffff;
+            color: #000000;
+            transition: all 0.3s ease;
+            overflow-x: hidden;
+        }
+
+        body.dark-theme {
+            background-color: #3c3c3c;
+            color: #ffffff;
+        }
+
+        .navbar {
+            background-color: #ffffff;
+            border-bottom: 1px solid #dadce0;
+            padding: 0 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            transition: all 0.3s ease;
+            height: 63px;
+        }
+
+        .dark-theme .navbar {
+            background-color: #3c3c3c;
+            border-bottom: 1px solid #444746;
+        }
+        
+        .navbar-left,
+        .navbar-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .navbar-logo {
+            height: 32px;
+            width: 32px;
+        }
+
+        .theme-icon {
+            width: 16px;
+            height: 16px;
+        }
+
+        .theme-toggle,
+        .lang-toggle {
+            background: none;
+            border: 1px solid #dadce0;
+            cursor: pointer;
+            padding: 0;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+            color: #000000;
+            transition: all 0.3s ease;
+            width: 32px;
+            height: 32px;
+        }
+
+        .dark-theme .theme-toggle,
+        .dark-theme .lang-toggle {
+            color: #ffffff;
+            border-color: #444746;
+        }
+
+        .theme-toggle:hover,
+        .lang-toggle:hover {
+            background-color: rgba(0, 0, 0, 0.1);
+        }
+
+        .dark-theme .theme-toggle:hover,
+        .dark-theme .lang-toggle:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .theme-toggle:active,
+        .lang-toggle:active {
+            transform: scale(0.9);
+        }
+
+        .content {
+            padding-top: 80px;
+            padding-bottom: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            max-width: 576px;
+            margin: 0 auto;
+            box-sizing: border-box;
+        }
+
+        .panel {
+            width: 100%;
+            max-width: 576px;
+            height: 64px;
+            background-color: #ffffff;
+            border: 1px solid #dadce0;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            box-sizing: border-box;
+            text-decoration: none;
+            color: inherit;
+            transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+        }
+
+        .dark-theme .panel {
+            background-color: #3c3c3c;
+            border-color: #444746;
+        }
+
+        .panel:hover {
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .panel-logo {
+            width: 32px;
+            height: 32px;
+            object-fit: cover;
+        }
+
+        .panel-content {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            margin-left: 16px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .panel-title {
+            font-size: 14px;
+            font-weight: bold;
+            line-height: 16px;
+            height: 16px;
+            margin: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .panel-details {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 0;
+            height: 16px;
+            line-height: 16px;
+        }
+
+        .panel-nickname {
+            font-size: 14px;
+            color: #5f6368;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .dark-theme .panel-nickname {
+            color: #9aa0a6;
+        }
+
+        .panel-username {
+            font-size: 14px;
+            color: #5f6368;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .dark-theme .panel-username {
+            color: #9aa0a6;
+        }
+
+        @media (max-width: 608px) {
+            .content {
+                padding-left: 16px;
+                padding-right: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-left">
+            <img src="static/vanchos.png" alt="Logo" class="navbar-logo" id="navbarLogo">
+        </div>
+        <div class="navbar-right">
+            <button class="lang-toggle" id="langToggle">РУ</button>
+            <button class="theme-toggle" id="themeToggle">
+                <img src="static/theme.png" alt="Dark theme" class="theme-icon" id="themeIcon">
+            </button>
+        </div>
+    </nav>
+
+    <div class="content" id="contentContainer">
+    </div>
+
+    <script>
+        const themeAssets = {
+            light: {
+                themeIcon: "static/theme.png",
+                logo: "static/vanchos.png",
+                favicon: "static/vanchos.png"
+            },
+            dark: {
+                themeIcon: "static/dark-theme.png",
+                logo: "static/dark-vanchos.png",
+                favicon: "static/dark-vanchos.png"
+            }
+        };
+
+        const panelsDatabase = [
+            {
+                title_en: "Telegram",
+                nickname: "Vanchos",
+                username: "itzvanchos",
+                logo_light: "static/telegram.png",
+                url: "https://t.me/itzvanchos"
+            },
+            {
+                title_en: "Discord",
+                nickname: "Vanchos",
+                username: "itzvanchos",
+                logo_light: "static/discord.png",
+                url: "https://discord.com/users/874645162029088821"
+            },
+            {
+                title_en: "Reddit",
+                nickname: "Vanchos",
+                username: "thevanchos",
+                logo_light: "static/reddit.png",
+                url: "https://reddit.com/user/thevanchos"
+            },
+            {
+                title_en: "X",
+                nickname: "Vanchos",
+                username: "_vanchos",
+                logo_light: "static/x.png",
+                url: "https://x.com/_vanchos"
+            },
+            {
+                title_en: "YouTube",
+                nickname: "Vanchos",
+                username: "vanchos",
+                logo_light: "static/youtube.png",
+                url: "https://youtube.com/@vanchos"
+            },
+            {
+                title_en: "TikTok",
+                nickname: "Vanchos",
+                username: "thevanchos",
+                logo_light: "static/tiktok.png",
+                url: "https://tiktok.com/@thevanchos"
+            },
+            {
+                title_en: "Twitch",
+                nickname: "itzvanchos",
+                username: "itzvanchos",
+                logo_light: "static/twitch.png",
+                url: "https://twitch.tv/itzvanchos"
+            },
+            {
+                title_en: "GitHub",
+                nickname: "Vanchos",
+                username: "itzvanchos",
+                logo_light: "static/github.png",
+                logo_dark: "static/dark-github.png",
+                url: "https://github.com/itzvanchos"
+            }
+        ];
+
+        const navbarLogo = document.getElementById('navbarLogo');
+        const themeIcon = document.getElementById('themeIcon');
+        const favicon = document.getElementById('favicon');
+        const themeToggle = document.getElementById('themeToggle');
+        const langToggle = document.getElementById('langToggle');
+        const contentContainer = document.getElementById('contentContainer');
+
+        let generalTheme;
+        let generalLanguage;
+
+        function getSavedTheme() {
+            try {
+                return localStorage.getItem('theme');
+            } catch {
+                return null;
+            }
+        }
+
+        function getSavedLanguage() {
+            try {
+                return localStorage.getItem('language');
+            } catch {
+                return null;
+            }
+        }
+
+        function getSystemTheme() {
+            try {
+                return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            } catch {
+                return null
+            }
+        }
+
+        function getSystemLanguage() {
+            try {
+                return navigator.language.startsWith('ru') ? 'ru' : 'en';
+            } catch {
+                return null
+            }
+        }
+
+        function applyPanelTheme() {
+            const panels = document.querySelectorAll('.panel');
+            panels.forEach(panel => {
+                if (panel._panelData && panel._logoElement) {
+                    const logoUrl = generalTheme === 'dark' && panel._panelData.logo_dark ? panel._panelData.logo_dark : panel._panelData.logo_light;
+                    panel._logoElement.src = logoUrl;
+                }
+            });
+        }
+
+        function applyPanelLanguage() {
+            const panels = document.querySelectorAll('.panel');
+            panels.forEach(panel => {
+                if (panel._panelData && panel._titleElement) {
+                    const title = generalLanguage === 'ru' && panel._panelData.title_ru ? panel._panelData.title_ru : panel._panelData.title_en;
+                    panel._titleElement.textContent = title;
+                }
+            });
+        }
+
+        function applyTheme(theme) {
+            generalTheme = theme;
+            document.body.classList.toggle('dark-theme', theme === 'dark');
+            const assets = theme === 'dark' ? themeAssets.dark : themeAssets.light;
+            themeIcon.src = assets.themeIcon;
+            themeIcon.alt = theme === 'dark' ? "Light theme" : "Dark theme";
+            navbarLogo.src = assets.logo;
+            favicon.href = assets.favicon;
+            
+            applyPanelTheme();
+        }
+
+        function applyLanguage(language) {
+            generalLanguage = language;
+            langToggle.textContent = language === 'ru' ? "EN" : "РУ";
+            
+            applyPanelLanguage();
+        }
+
+        function loadSettings() {
+            const savedTheme = getSavedTheme();
+            const savedLanguage = getSavedLanguage();
+
+            const theme = savedTheme === null ? (getSystemTheme() === 'dark' ? 'dark' : 'light') : savedTheme;
+            const language = savedLanguage === null ? (getSystemLanguage() === 'ru' ? 'ru' : 'en') : savedLanguage;
+
+            applyTheme(theme);
+            applyLanguage(language);
+        }
+
+        function createPanel(panelData) {
+            const panel = document.createElement('a');
+            panel.className = 'panel';
+            panel.href = panelData.url;
+            panel.target = '_blank';
+            panel.rel = 'noopener noreferrer';
+            
+            const logo = document.createElement('img');
+            logo.className = 'panel-logo';
+            logo.alt = panelData.title_en;
+            panel.appendChild(logo);
+            
+            const content = document.createElement('div');
+            content.className = 'panel-content';
+            
+            const title = document.createElement('div');
+            title.className = 'panel-title';
+            content.appendChild(title);
+            
+            const details = document.createElement('div');
+            details.className = 'panel-details';
+            
+            const nickname = document.createElement('span');
+            nickname.className = 'panel-nickname';
+            nickname.textContent = panelData.nickname;
+            
+            const username = document.createElement('span');
+            username.className = 'panel-username';
+            username.textContent = panelData.username;
+            
+            details.appendChild(nickname);
+            details.appendChild(username);
+            content.appendChild(details);
+            
+            panel.appendChild(content);
+            
+            panel._panelData = panelData;
+            panel._logoElement = logo;
+            panel._titleElement = title;
+            
+            return panel;
+        }
+
+        function renderPanels() {
+            contentContainer.innerHTML = '';
+            
+            panelsDatabase.forEach(panelData => {
+                const panel = createPanel(panelData);
+                contentContainer.appendChild(panel);
+            });
+            
+            applyPanelTheme();
+            applyPanelLanguage();
+        }
+
+        loadSettings();
+        renderPanels();
+
+        function saveTheme(theme) {
+            try {
+                localStorage.setItem('theme', theme);
+            } catch {}
+        }
+
+        function saveLanguage(language) {
+            try {
+                localStorage.setItem('language', language);
+            } catch {}
+        }
+
+        themeToggle.addEventListener('click', () => {
+            generalTheme = generalTheme === 'light' ? 'dark' : 'light';
+            applyTheme(generalTheme);
+            saveTheme(generalTheme);
+        });
+
+        langToggle.addEventListener('click', () => {
+            generalLanguage = generalLanguage === 'en' ? 'ru' : 'en';
+            applyLanguage(generalLanguage);
+            saveLanguage(generalLanguage);
+        });
+    </script>
+</body>
+</html>
