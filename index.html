@@ -234,65 +234,7 @@
             }
         };
 
-        const panelsDatabase = [
-            {
-                title_en: "Telegram",
-                nickname: "Vanchos",
-                username: "itzvanchos",
-                logo_light: "static/telegram.png",
-                url: "https://t.me/itzvanchos"
-            },
-            {
-                title_en: "Discord",
-                nickname: "Vanchos",
-                username: "itzvanchos",
-                logo_light: "static/discord.png",
-                url: "https://discord.com/users/874645162029088821"
-            },
-            {
-                title_en: "Reddit",
-                nickname: "Vanchos",
-                username: "thevanchos",
-                logo_light: "static/reddit.png",
-                url: "https://reddit.com/user/thevanchos"
-            },
-            {
-                title_en: "X",
-                nickname: "Vanchos",
-                username: "_vanchos",
-                logo_light: "static/x.png",
-                url: "https://x.com/_vanchos"
-            },
-            {
-                title_en: "YouTube",
-                nickname: "Vanchos",
-                username: "vanchos",
-                logo_light: "static/youtube.png",
-                url: "https://youtube.com/@vanchos"
-            },
-            {
-                title_en: "TikTok",
-                nickname: "Vanchos",
-                username: "thevanchos",
-                logo_light: "static/tiktok.png",
-                url: "https://tiktok.com/@thevanchos"
-            },
-            {
-                title_en: "Twitch",
-                nickname: "itzvanchos",
-                username: "itzvanchos",
-                logo_light: "static/twitch.png",
-                url: "https://twitch.tv/itzvanchos"
-            },
-            {
-                title_en: "GitHub",
-                nickname: "Vanchos",
-                username: "itzvanchos",
-                logo_light: "static/github.png",
-                logo_dark: "static/dark-github.png",
-                url: "https://github.com/itzvanchos"
-            }
-        ];
+        const PUBLIC_SHEETS_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTEa81BMSgRUYsuECeyeZ8u-xMuS0G65CV_eMnAYm2mkFH1YVKNto6seC14nO3if9jwYaEqzGLaus02/pub?output=csv';
 
         const navbarLogo = document.getElementById('navbarLogo');
         const themeIcon = document.getElementById('themeIcon');
@@ -303,6 +245,7 @@
 
         let generalTheme;
         let generalLanguage;
+        let panelsDatabase = [];
 
         function getSavedTheme() {
             try {
@@ -333,6 +276,48 @@
                 return navigator.language.startsWith('ru') ? 'ru' : 'en';
             } catch {
                 return null
+            }
+        }
+
+        function parseCSVRow(csvRow) {
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+            
+            for (let i = 0; i < csvRow.length; i++) {
+                const char = csvRow[i];
+                
+                if (char === '"') {
+                    inQuotes = !inQuotes;
+                } else if (char === ',' && !inQuotes) {
+                    result.push(current);
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            result.push(current);
+            
+            return result.map(value => value.replace(/^"|"$/g, ''));
+        }
+
+        async function loadFromGoogleSheets() {
+            const response = await fetch(PUBLIC_SHEETS_URL);
+            const csvText = await response.text();
+            const rows = csvText.trim().split('\n');
+            
+            for (let i = 0; i < rows.length; i++) {
+                const row = parseCSVRow(rows[i]);
+                
+                panelsDatabase.push({
+                    title_en: row[0].trim(),
+                    title_ru: row[1]?.trim() || '',
+                    nickname: row[2].trim(),
+                    username: row[3].trim(),
+                    url: row[4].trim(),
+                    logo_light: row[5].trim(),
+                    logo_dark: row[6]?.trim() || ''
+                });
             }
         }
 
@@ -441,8 +426,13 @@
             applyPanelLanguage();
         }
 
-        loadSettings();
-        renderPanels();
+        async function init() {
+            loadSettings();
+            await loadFromGoogleSheets();
+            renderPanels();
+        }
+
+        init();
 
         function saveTheme(theme) {
             try {
