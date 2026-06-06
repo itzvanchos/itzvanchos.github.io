@@ -223,14 +223,10 @@
     <script>
         const themeAssets = {
             light: {
-                themeIcon: "static/theme.png",
-                logo: "static/vanchos.png",
-                favicon: "static/vanchos.png"
+                themeIcon: "static/theme.png"
             },
             dark: {
-                themeIcon: "static/dark-theme.png",
-                logo: "static/dark-vanchos.png",
-                favicon: "static/dark-vanchos.png"
+                themeIcon: "static/dark-theme.png"
             }
         };
 
@@ -305,18 +301,24 @@
             const response = await fetch(PUBLIC_SHEETS_URL);
             const csvText = await response.text();
             const rows = csvText.trim().split('\n');
+
+            const firstRow = parseCSVRow(rows[0]);
+            themeAssets.light.logo = firstRow[0].trim();
+            themeAssets.light.favicon = firstRow[0].trim();
+            themeAssets.dark.logo = firstRow[1].trim();
+            themeAssets.dark.favicon = firstRow[1].trim();
             
             for (let i = 0; i < rows.length; i++) {
                 const row = parseCSVRow(rows[i]);
                 
                 panelsDatabase.push({
-                    title_en: row[0].trim(),
-                    title_ru: row[1]?.trim() || '',
-                    nickname: row[2].trim(),
-                    username: row[3].trim(),
-                    url: row[4].trim(),
-                    logo_light: row[5].trim(),
-                    logo_dark: row[6]?.trim() || ''
+                    title_en: row[2].trim(),
+                    title_ru: row[3]?.trim() || '',
+                    nickname: row[4].trim(),
+                    username: row[5].trim(),
+                    url: row[6].trim(),
+                    logo_light: row[7].trim(),
+                    logo_dark: row[8]?.trim() || ''
                 });
             }
         }
@@ -427,8 +429,8 @@
         }
 
         async function init() {
-            loadSettings();
             await loadFromGoogleSheets();
+            loadSettings();
             renderPanels();
         }
 
