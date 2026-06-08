@@ -263,7 +263,7 @@
             try {
                 return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             } catch {
-                return null
+                return null;
             }
         }
 
@@ -271,7 +271,7 @@
             try {
                 return navigator.language.startsWith('ru') ? 'ru' : 'en';
             } catch {
-                return null
+                return null;
             }
         }
 
@@ -341,34 +341,29 @@
             });
         }
 
-        function applyTheme(theme) {
-            generalTheme = theme;
-            document.body.classList.toggle('dark-theme', theme === 'dark');
-            const assets = theme === 'dark' ? themeAssets.dark : themeAssets.light;
+        function applyBodyTheme() {
+            document.body.classList.toggle('dark-theme', generalTheme === 'dark');
+            const assets = generalTheme === 'dark' ? themeAssets.dark : themeAssets.light;
             themeIcon.src = assets.themeIcon;
-            themeIcon.alt = theme === 'dark' ? "Light theme" : "Dark theme";
-            navbarLogo.src = assets.logo;
-            favicon.href = assets.logo;
-            
-            applyPanelTheme();
+            themeIcon.alt = generalTheme === 'dark' ? "Light theme" : "Dark theme";
         }
 
-        function applyLanguage(language) {
-            generalLanguage = language;
-            langToggle.textContent = language === 'ru' ? "EN" : "РУ";
-            
-            applyPanelLanguage();
+        function applyLogoTheme() {
+            const assets = generalTheme === 'dark' ? themeAssets.dark : themeAssets.light;
+            navbarLogo.src = assets.logo;
+            favicon.href = assets.logo;
+        }
+
+        function applyLanguage() {
+            langToggle.textContent = generalLanguage === 'ru' ? "EN" : "РУ";
         }
 
         function loadSettings() {
             const savedTheme = getSavedTheme();
             const savedLanguage = getSavedLanguage();
 
-            const theme = savedTheme === null ? (getSystemTheme() === 'dark' ? 'dark' : 'light') : savedTheme;
-            const language = savedLanguage === null ? (getSystemLanguage() === 'ru' ? 'ru' : 'en') : savedLanguage;
-
-            applyTheme(theme);
-            applyLanguage(language);
+            generalTheme = savedTheme === null ? (getSystemTheme() === 'dark' ? 'dark' : 'light') : savedTheme;
+            generalLanguage = savedLanguage === null ? (getSystemLanguage() === 'ru' ? 'ru' : 'en') : savedLanguage;
         }
 
         function createPanel(panelData) {
@@ -421,41 +416,46 @@
                 const panel = createPanel(panelData);
                 contentContainer.appendChild(panel);
             });
-            
+        }
+
+        async function init() {
+            loadSettings();
+            applyBodyTheme();
+            applyLanguage();
+            await loadFromGoogleSheets();
+            applyLogoTheme();
+            renderPanels();
             applyPanelTheme();
             applyPanelLanguage();
         }
 
-        async function init() {
-            await loadFromGoogleSheets();
-            loadSettings();
-            renderPanels();
-        }
-
         init();
 
-        function saveTheme(theme) {
+        function saveTheme() {
             try {
-                localStorage.setItem('theme', theme);
+                localStorage.setItem('theme', generalTheme);
             } catch {}
         }
 
-        function saveLanguage(language) {
+        function saveLanguage() {
             try {
-                localStorage.setItem('language', language);
+                localStorage.setItem('language', generalLanguage);
             } catch {}
         }
 
         themeToggle.addEventListener('click', () => {
             generalTheme = generalTheme === 'light' ? 'dark' : 'light';
-            applyTheme(generalTheme);
-            saveTheme(generalTheme);
+            applyBodyTheme();
+            applyLogoTheme();
+            applyPanelTheme();
+            saveTheme();
         });
 
         langToggle.addEventListener('click', () => {
             generalLanguage = generalLanguage === 'en' ? 'ru' : 'en';
-            applyLanguage(generalLanguage);
-            saveLanguage(generalLanguage);
+            applyLanguage();
+            applyPanelLanguage();
+            saveLanguage();
         });
     </script>
 </body>
